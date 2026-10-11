@@ -1,0 +1,16 @@
+{
+  "revision": "0019_demo_ai_usage",
+  "maintenance": "Literal migration-owned contract. Update explicitly alongside a migration; never derive this list from current ORM metadata.",
+  "columns": [
+    "id", "customer_id", "provider_profile_id", "chat_room_id", "title",
+    "service_category", "service_description", "service_address",
+    "service_latitude", "service_longitude", "customer_current_address",
+    "customer_current_latitude", "customer_current_longitude", "booking_at",
+    "scheduled_start_time", "scheduled_end_time", "completed_at", "total_amount",
+    "quote_amount", "quote_message", "expected_service_amount", "visit_fee_amount",
+    "final_quote_amount", "final_quote_message", "quoted_at", "arrival_started_at",
+    "final_quote_declined_at", "final_quote_decline_reason", "final_quote_confirmed_at",
+    "closed_reason", "status", "status_note", "onboarding_paused",
+    "onboarding_pause_reason", "onboarding_paused_at"
+  ]
+}

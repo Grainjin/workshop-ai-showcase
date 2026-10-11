@@ -1,0 +1,73 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+*.egg
+*.egg-info/
+.eggs/
+dist/
+build/
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+.tox/
+.nox/
+.coverage
+.coverage.*
+htmlcov/
+.hypothesis/
+
+# Virtualenvs
+.venv/
+venv/
+.review-venv/
+
+# Environment
+.env
+.env.*
+!.env.example
+!.env.production.example
+
+# Local SQLite leftovers
+*.db
+*.sqlite
+*.sqlite3
+
+# Uploads and secrets
+backend/uploads/
+backend/private_uploads/
+backend/certs/*.pem
+backend/certs/*.json
+pytest-cache-files-*/
+
+# Celery
+celerybeat-schedule
+celerybeat-schedule.*
+*.pid
+
+# Logs
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# OS / editors
+.DS_Store
+/tmp/
+Thumbs.db
+.idea/
+.vscode/
+
+# Expo / React Native (also covered by frontend/mobile/.gitignore)
+frontend/mobile/node_modules/
+frontend/mobile/.expo/
+frontend/mobile/dist/
+frontend/mobile/dist-*/
+frontend/mobile/web-build/
+frontend/mobile/expo-env.d.ts
+frontend/mobile/.env
+frontend/mobile/.env.*
+!frontend/mobile/.env.example
+!frontend/mobile/.env.production.example
+frontend/mobile/*.tsbuildinfo

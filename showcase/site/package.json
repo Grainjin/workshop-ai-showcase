@@ -1,0 +1,29 @@
+{
+  "name": "workshop-ai-case-study",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "engines": { "node": ">=24.19.0" },
+  "scripts": {
+    "dev": "vite --host 127.0.0.1",
+    "test": "vitest",
+    "test:e2e": "playwright test",
+    "test:policy": "vitest run src/content/content-policy.test.ts",
+    "build": "tsc --noEmit && vitest run src/content/content-policy.test.ts && vite build",
+    "preview": "vite preview --host 127.0.0.1"
+  },
+  "dependencies": {
+    "react": "19.2.3",
+    "react-dom": "19.2.3"
+  },
+  "devDependencies": {
+    "@types/node": "24.10.1",
+    "@types/react": "19.2.2",
+    "@types/react-dom": "19.2.2",
+    "@vitejs/plugin-react": "5.1.1",
+    "playwright": "1.57.0",
+    "typescript": "6.0.3",
+    "vite": "7.2.2",
+    "vitest": "4.0.8"
+  }
+}

@@ -1,0 +1,37 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="480" height="660" viewBox="0 0 480 660" role="img" aria-labelledby="confirmation-title confirmation-description">
+  <title id="confirmation-title">AI 操作确认流程图</title>
+  <desc id="confirmation-description">理解需求后通过 Tool Calling 读取信息或准备操作草稿。改变业务状态的操作先生成确认卡，用户确认后执行并反馈状态。未确认时不执行；读取与建议可直接展示。</desc>
+  <defs><marker id="arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse"><path d="M 0 0 L 10 5 L 0 10 z" fill="#8edaca"/></marker></defs>
+  <rect width="480" height="660" rx="12" fill="#152237"/>
+  <g font-family="-apple-system, BlinkMacSystemFont, Segoe UI, sans-serif" text-anchor="middle" fill="#edf3fb">
+    <text x="240" y="38" font-size="24" font-weight="650">交易变更 · 先确认再执行</text>
+    <g fill="#0d1624" stroke="#35465e" stroke-width="2">
+      <rect x="40" y="60" width="400" height="80" rx="8"/>
+      <rect x="40" y="180" width="400" height="80" rx="8"/>
+      <rect x="40" y="300" width="400" height="80" rx="8"/>
+      <rect x="40" y="420" width="400" height="80" rx="8" stroke="#8edaca"/>
+      <rect x="40" y="550" width="400" height="80" rx="8"/>
+    </g>
+    <g font-size="24">
+      <text x="240" y="94">1 · 理解需求</text>
+      <text x="240" y="214">2 · Tool Calling</text>
+      <text x="240" y="334">3 · 生成确认卡</text>
+      <text x="240" y="454">4 · 用户确认</text>
+      <text x="240" y="584">5 · 执行与反馈</text>
+    </g>
+    <g font-size="20" fill="#b5c4d8">
+      <text x="240" y="125">结合需求与当前业务上下文</text>
+      <text x="240" y="245">读取可直接展示 · 变更先准备草稿</text>
+      <text x="240" y="365">展示待执行内容 · 尚未变更状态</text>
+      <text x="240" y="485">未确认时不执行</text>
+      <text x="240" y="615">返回实际业务结果与订单状态</text>
+      <text x="285" y="529" fill="#8edaca">确认后</text>
+    </g>
+  </g>
+  <g fill="none" stroke="#8edaca" stroke-width="2" marker-end="url(#arrow)">
+    <path d="M240 140 V180"/>
+    <path d="M240 260 V300"/>
+    <path d="M240 380 V420"/>
+    <path d="M240 500 V550"/>
+  </g>
+</svg>

@@ -1,0 +1,247 @@
+x-backend-env: &backend-env
+  WORKSHOP_DATABASE_URL: postgresql+psycopg://workshop:workshop@postgres:5432/workshop
+  # Opt-in defaults. Preserve explicit blanks so backend validation rejects them.
+  DEMO_MODE: ${DEMO_MODE-false}
+  WORKSHOP_PAYMENT_MODE: ${WORKSHOP_PAYMENT_MODE-iyzico_sandbox}
+  DEMO_AI_DAILY_LIMIT: ${DEMO_AI_DAILY_LIMIT-100}
+  DEMO_AI_PER_MINUTE_LIMIT: ${DEMO_AI_PER_MINUTE_LIMIT-10}
+  # Normal workshop database names do not match the guarded reset marker.
+  DEMO_DATABASE_MARKER: ${DEMO_DATABASE_MARKER-workshop_demo}
+  # Stable integer seed for repeatable demo resets.
+  WORKSHOP_DEMO_SEED: ${WORKSHOP_DEMO_SEED-42}
+  WORKSHOP_REDIS_HOST: redis
+  WORKSHOP_REDIS_PORT: 6379
+  WORKSHOP_CELERY_BROKER_URL: redis://redis:6379/1
+  WORKSHOP_CELERY_RESULT_BACKEND: redis://redis:6379/2
+  WORKSHOP_JWT_PRIVATE_KEY_PATH: backend/certs/jwt-private.pem
+  WORKSHOP_JWT_PUBLIC_KEY_PATH: backend/certs/jwt-public.pem
+  WORKSHOP_UPLOAD_DIR: backend/uploads
+  WORKSHOP_VERIFICATION_UPLOAD_DIR: backend/uploads/verification
+  WORKSHOP_MILVUS_HOST: milvus
+  WORKSHOP_MILVUS_PORT: 19530
+  WORKSHOP_GOOGLE_MAPS_API_KEY: ${WORKSHOP_GOOGLE_MAPS_API_KEY:-}
+  WORKSHOP_GOOGLE_CLIENT_IDS: ${WORKSHOP_GOOGLE_CLIENT_IDS:-}
+  WORKSHOP_APPLE_CLIENT_IDS: ${WORKSHOP_APPLE_CLIENT_IDS:-com.comp5703.workshopai}
+  WORKSHOP_EMAIL_BACKEND: ${WORKSHOP_EMAIL_BACKEND:-console}
+  WORKSHOP_SMTP_HOST: ${WORKSHOP_SMTP_HOST:-smtp.gmail.com}
+  WORKSHOP_SMTP_PORT: ${WORKSHOP_SMTP_PORT:-587}
+  WORKSHOP_SMTP_USERNAME: ${WORKSHOP_SMTP_USERNAME:-workshop-demo@example.invalid}
+  WORKSHOP_SMTP_PASSWORD: ${WORKSHOP_SMTP_PASSWORD:-}
+  WORKSHOP_EMAIL_FROM: ${WORKSHOP_EMAIL_FROM:-workshop-demo@example.invalid}
+  WORKSHOP_EMAIL_FROM_NAME: ${WORKSHOP_EMAIL_FROM_NAME:-Workshop AI}
+  IYZICO_BASE_URL: ${IYZICO_BASE_URL:-https://sandbox-api.iyzipay.com}
+  IYZICO_API_KEY: ${IYZICO_API_KEY:-}
+  IYZICO_SECRET_KEY: ${IYZICO_SECRET_KEY:-}
+  IYZICO_CALLBACK_URL: ${IYZICO_CALLBACK_URL:-http://localhost:8000/payments/iyzico/callback}
+  IYZICO_FRONTEND_RETURN_URL: ${IYZICO_FRONTEND_RETURN_URL:-http://localhost:8090/payment-result}
+  IYZICO_CHECKOUT_TTL_SECONDS: ${IYZICO_CHECKOUT_TTL_SECONDS:-1800}
+  IYZICO_TIMEOUT_SECONDS: ${IYZICO_TIMEOUT_SECONDS:-15}
+  PLATFORM_COMMISSION_RATE: ${PLATFORM_COMMISSION_RATE:-0.10}
+  LLM_PROVIDER: ${LLM_PROVIDER:-qwen}
+  LLM_API_KEY: ${LLM_API_KEY:-}
+  QWEN_API_KEY: ${QWEN_API_KEY:-}
+  OPENAI_API_KEY: ${OPENAI_API_KEY:-}
+  LLM_MODEL: ${LLM_MODEL:-}
+  LLM_BASE_URL: ${LLM_BASE_URL:-}
+  EMBEDDING_API_KEY: ${EMBEDDING_API_KEY:-tei}
+  EMBEDDING_BASE_URL: ${EMBEDDING_BASE_URL:-http://tei:80/v1}
+  EMBEDDING_MODEL: ${EMBEDDING_MODEL:-Qwen/Qwen3-Embedding-0.6B}
+  EMBEDDING_DIMENSION: ${EMBEDDING_DIMENSION:-1024}
+
+services:
+  postgres:
+    container_name: workshop-ai-postgres
+    image: postgres:16
+    environment:
+      POSTGRES_USER: workshop
+      POSTGRES_PASSWORD: workshop
+      POSTGRES_DB: workshop
+    ports:
+      - "5436:5432"
+    volumes:
+      - workshop-ai-postgres:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U workshop -d workshop"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+  redis:
+    container_name: workshop-ai-redis
+    image: redis:7.2
+    ports:
+      - "6379:6379"
+    volumes:
+      - workshop-ai-redis:/data
+    command: redis-server --appendonly yes
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+
+  etcd:
+    container_name: workshop-ai-etcd
+    image: quay.io/coreos/etcd:v3.5.18
+    environment:
+      - ETCD_AUTO_COMPACTION_MODE=revision
+      - ETCD_AUTO_COMPACTION_RETENTION=1000
+      - ETCD_QUOTA_BACKEND_BYTES=4294967296
+      - ETCD_SNAPSHOT_COUNT=50000
+    command: >
+      etcd
+      -advertise-client-urls=http://etcd:2379
+      -listen-client-urls=http://0.0.0.0:2379
+      --data-dir=/etcd
+    volumes:
+      - workshop-ai-etcd:/etcd
+    healthcheck:
+      test: ["CMD", "etcdctl", "endpoint", "health"]
+      interval: 30s
+      timeout: 20s
+      retries: 3
+
+  minio:
+    container_name: workshop-ai-minio
+    image: minio/minio:RELEASE.2024-05-28T17-19-04Z
+    environment:
+      MINIO_ACCESS_KEY: minioadmin
+      MINIO_SECRET_KEY: minioadmin
+    command: minio server /minio_data --console-address ":9001"
+    ports:
+      - "9000:9000"
+      - "9001:9001"
+    volumes:
+      - workshop-ai-minio:/minio_data
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:9000/minio/health/live"]
+      interval: 30s
+      timeout: 20s
+      retries: 3
+
+  milvus:
+    container_name: workshop-ai-milvus
+    image: milvusdb/milvus:v2.4.4
+    command: ["milvus", "run", "standalone"]
+    security_opt:
+      - seccomp:unconfined
+    environment:
+      ETCD_ENDPOINTS: etcd:2379
+      MINIO_ADDRESS: minio:9000
+    ports:
+      - "19530:19530"
+      - "9091:9091"
+    volumes:
+      - workshop-ai-milvus:/var/lib/milvus
+    depends_on:
+      etcd:
+        condition: service_healthy
+      minio:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:9091/healthz"]
+      interval: 30s
+      timeout: 20s
+      retries: 10
+      start_period: 90s
+
+  tei:
+    container_name: workshop-ai-tei
+    image: ghcr.io/huggingface/text-embeddings-inference:cpu-1.9
+    command:
+      [
+        "--model-id",
+        "Qwen/Qwen3-Embedding-0.6B",
+        "--max-batch-tokens",
+        "1024",
+      ]
+    ports:
+      - "8091:80"
+    volumes:
+      - workshop-ai-tei:/data
+
+  api:
+    container_name: workshop-ai-api
+    build:
+      context: .
+      dockerfile: docker/api/Dockerfile
+    ports:
+      - "8000:8000"
+    environment:
+      <<: *backend-env
+      WORKSHOP_SEED: "1"
+      WORKSHOP_CORS_ORIGINS: http://localhost:8090,http://127.0.0.1:8090,http://localhost:8000,http://127.0.0.1:8000,http://localhost:8081,http://127.0.0.1:8081
+    volumes:
+      - workshop-ai-certs:/app/backend/certs
+      - workshop-ai-uploads:/app/backend/uploads
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+      milvus:
+        condition: service_healthy
+      tei:
+        condition: service_started
+    command: ["api"]
+    healthcheck:
+      test:
+        [
+          "CMD",
+          "python",
+          "-c",
+          "import urllib.request; urllib.request.urlopen('http://127.0.0.1:8000/health')",
+        ]
+      interval: 10s
+      timeout: 5s
+      retries: 12
+      start_period: 40s
+
+  worker:
+    container_name: workshop-ai-worker
+    build:
+      context: .
+      dockerfile: docker/api/Dockerfile
+    environment:
+      <<: *backend-env
+    volumes:
+      - workshop-ai-certs:/app/backend/certs
+      - workshop-ai-uploads:/app/backend/uploads
+    depends_on:
+      api:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+      milvus:
+        condition: service_healthy
+      tei:
+        condition: service_started
+    command: ["worker"]
+    # This shared image probes API HTTP liveness; workers have no HTTP server.
+    healthcheck:
+      disable: true
+
+  web:
+    container_name: workshop-ai-web
+    build:
+      context: .
+      dockerfile: docker/web/Dockerfile
+      args:
+        EXPO_PUBLIC_API_BASE_URL: same-origin
+        EXPO_PUBLIC_WS_BASE_URL: same-origin
+        EXPO_PUBLIC_DEMO_MODE: ${EXPO_PUBLIC_DEMO_MODE-false}
+    ports:
+      - "8090:80"
+    depends_on:
+      api:
+        condition: service_healthy
+
+volumes:
+  workshop-ai-postgres:
+  workshop-ai-etcd:
+  workshop-ai-minio:
+  workshop-ai-milvus:
+  workshop-ai-redis:
+  workshop-ai-certs:
+  workshop-ai-uploads:
+  workshop-ai-tei:

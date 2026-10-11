@@ -1,0 +1,51 @@
+name: Preview release gate
+
+on:
+  workflow_dispatch:
+    inputs:
+      operation:
+        description: Run CI for native preview handoff, or check the disabled external deploy gate
+        type: choice
+        required: true
+        default: native-handoff
+        options:
+          - native-handoff
+          - external-deploy
+
+permissions:
+  contents: read
+
+concurrency:
+  group: preview-release-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  ci:
+    uses: ./.github/workflows/ci.yml
+
+  native-handoff:
+    needs: ci
+    if: inputs.operation == 'native-handoff'
+    runs-on: ubuntu-24.04
+    timeout-minutes: 5
+    steps:
+      - name: Record native platform handoff
+        env:
+          RELEASE_SHA: ${{ github.sha }}
+        run: |
+          printf 'Full CI passed for commit `%s`.\n\n' "$RELEASE_SHA" >> "$GITHUB_STEP_SUMMARY"
+          printf '%s\n' 'No cloud deployment was performed. The authorized operator may now deploy this exact commit through native Railway and Vercel, following docs/deployment/public-demo.md. Verify migration, applied settings, completion and readiness before traffic.' >> "$GITHUB_STEP_SUMMARY"
+
+  # Deliberately no environment or platform secret references: an absent GitHub
+  # environment auto-creates without protection. Future activation needs review.
+  external-deploy-disabled:
+    needs: ci
+    if: inputs.operation == 'external-deploy'
+    runs-on: ubuntu-24.04
+    timeout-minutes: 5
+    steps:
+      - name: Refuse unverified external deployment
+        run: |
+          printf '%s\n' 'External deployment is disabled: repository approval protection has not been verified. No platform credentials are consumed and no deployment was triggered.' >> "$GITHUB_STEP_SUMMARY"
+          printf '%s\n' '::error::External deployment disabled until an actual approval gate and environment-scoped secrets are verified. See docs/deployment/public-demo.md.'
+          exit 1

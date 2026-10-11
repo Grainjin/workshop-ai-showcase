@@ -1,0 +1,13 @@
+# Railway project root is the repository root. Provision service secrets separately;
+# see docs/public-deployment.md. Pre-deploy failures must prevent rollout.
+[build]
+builder = "DOCKERFILE"
+dockerfilePath = "docker/api/Dockerfile"
+
+[deploy]
+preDeployCommand = ["env WORKSHOP_PUBLIC_DEPLOYMENT=true /app/docker/api/entrypoint.sh release"]
+startCommand = "env WORKSHOP_PUBLIC_DEPLOYMENT=true /app/docker/api/entrypoint.sh api"
+healthcheckPath = "/health"
+healthcheckTimeout = 120
+restartPolicyType = "ON_FAILURE"
+restartPolicyMaxRetries = 3

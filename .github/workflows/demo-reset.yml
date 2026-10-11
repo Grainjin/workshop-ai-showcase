@@ -1,0 +1,67 @@
+name: Demo reset isolated dry run
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: demo-reset-dry-run-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  isolated-reset-check:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+    services:
+      postgres:
+        image: postgres:16
+        env:
+          POSTGRES_USER: workshop
+          POSTGRES_PASSWORD: workshop
+          POSTGRES_DB: workshop_demo_reset_dry_run
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U workshop -d workshop_demo_reset_dry_run"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 10
+    env:
+      WORKSHOP_DATABASE_URL: postgresql+psycopg://workshop:workshop@127.0.0.1:5432/workshop_demo_reset_dry_run
+      WORKSHOP_RESET_TEST_ADMIN_URL: postgresql+psycopg://workshop:workshop@127.0.0.1:5432/workshop_demo_reset_dry_run
+      WORKSHOP_PUBLIC_DEPLOYMENT: "false"
+      DEMO_MODE: "true"
+      WORKSHOP_PAYMENT_MODE: demo
+      DEMO_DATABASE_MARKER: workshop_demo
+      WORKSHOP_DEMO_SEED: "42"
+      WORKSHOP_EMAIL_BACKEND: memory
+      LLM_API_KEY: ""
+      QWEN_API_KEY: ""
+      DASHSCOPE_API_KEY: ""
+      OPENAI_API_KEY: ""
+      EMBEDDING_API_KEY: ""
+      PYTEST_DISABLE_PLUGIN_AUTOLOAD: "1"
+    steps:
+      - uses: actions/checkout@1af3b93b6815bc44a9784bd300feb67ff0d1eeb3 # v6.0.0
+        with:
+          persist-credentials: false
+      - uses: actions/setup-python@83679a892e2d95755f2dac6acb0bfd1e9ac5d548 # v6.1.0
+        with:
+          python-version: "3.12"
+      - name: Install backend dependencies
+        run: pip install -r backend/requirements.txt
+      - name: Migrate disposable database
+        run: alembic upgrade head
+      - name: Execute guarded reset on disposable database
+        run: python -m backend.reset_demo_data --confirm reset-workshop-demo
+      - name: Verify atomic rollback and reset guards
+        run: python -m pytest -p no:debugging tests/test_demo_reset.py -q --tb=short
+      - name: Record dry-run outcome
+        if: always()
+        env:
+          RESET_OUTCOME: ${{ job.status }}
+        run: |
+          printf 'Isolated PostgreSQL reset dry run: %s.\n\n' "$RESET_OUTCOME" >> "$GITHUB_STEP_SUMMARY"
+          printf '%s\n' 'No cloud database was accessed. This manual workflow does not schedule or perform a Railway reset. Actual daily maintenance uses the private-network Railway job; follow docs/deployment/public-demo.md.' >> "$GITHUB_STEP_SUMMARY"

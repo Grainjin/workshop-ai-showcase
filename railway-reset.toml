@@ -1,0 +1,10 @@
+# Dedicated private-network cron service; NOT the API service configuration.
+# Apply/verify these settings natively before activation; see the release runbook.
+[build]
+builder = "DOCKERFILE"
+dockerfilePath = "docker/api/Dockerfile"
+
+[deploy]
+startCommand = "/app/docker/api/entrypoint.sh reset-demo --confirm reset-workshop-demo"
+cronSchedule = "0 17 * * *"
+restartPolicyType = "NEVER"

@@ -1,0 +1,3 @@
+Alembic migrations for Workshop AI.
+
+The current baseline is PostgreSQL (`0001_initial_postgres`). Do not add SQLite-only `batch_alter` revisions.

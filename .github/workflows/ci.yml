@@ -1,0 +1,176 @@
+name: CI
+
+on:
+  workflow_call:
+  push:
+    branches: [main]
+  pull_request:
+
+concurrency:
+  group: ci-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+jobs:
+  backend:
+    name: backend
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+    services:
+      postgres:
+        image: postgres:16
+        env:
+          POSTGRES_USER: workshop
+          POSTGRES_PASSWORD: workshop
+          POSTGRES_DB: workshop_test
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U workshop -d workshop_test"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 10
+      redis:
+        image: redis:7
+        ports:
+          - 6379:6379
+        options: >-
+          --health-cmd "redis-cli ping"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 10
+    env:
+      WORKSHOP_DATABASE_URL: postgresql+psycopg://workshop:workshop@localhost:5432/workshop_test
+      WORKSHOP_REQUIRE_POSTGRES_MIGRATION_TESTS: "1"
+      WORKSHOP_REDIS_HOST: 127.0.0.1
+      WORKSHOP_REDIS_PORT: 6379
+      WORKSHOP_CELERY_BROKER_URL: redis://127.0.0.1:6379/1
+      WORKSHOP_CELERY_RESULT_BACKEND: redis://127.0.0.1:6379/2
+      QWEN_API_KEY: ""
+      DASHSCOPE_API_KEY: ""
+      OPENAI_API_KEY: ""
+      LLM_API_KEY: ""
+      EMBEDDING_API_KEY: ""
+      LLM_TIMEOUT_SECONDS: "5"
+    steps:
+      - uses: actions/checkout@1af3b93b6815bc44a9784bd300feb67ff0d1eeb3 # v6.0.0
+        with:
+          persist-credentials: false
+      - uses: actions/setup-python@83679a892e2d95755f2dac6acb0bfd1e9ac5d548 # v6.1.0
+        with:
+          python-version: "3.12"
+      - name: Install backend dependencies
+        run: pip install -r backend/requirements.txt
+      - name: Generate JWT keys
+        run: python scripts/generate_jwt_keys.py
+      - name: Migrate
+        run: |
+          alembic upgrade head
+          alembic downgrade -1
+          alembic upgrade head
+      - name: Migration contracts
+        run: pytest tests/test_onboarding_pause_migration.py tests/test_model_migration_contract.py -v
+      - name: Lint
+        run: ruff check backend tests scripts
+      - name: Test
+        run: pytest -q --durations=20
+
+  mobile:
+    name: mobile
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+    defaults:
+      run:
+        working-directory: frontend/mobile
+    steps:
+      - uses: actions/checkout@1af3b93b6815bc44a9784bd300feb67ff0d1eeb3 # v6.0.0
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@2028fbc5c25fe9cf00d9f06a71cc4710d4507903 # v6.0.0
+        with:
+          node-version: "24.19.0"
+          cache: npm
+          cache-dependency-path: frontend/mobile/package-lock.json
+      - name: Install frontend dependencies
+        run: npm ci
+      - name: Typecheck
+        run: npm run typecheck
+      - name: Frontend regressions
+        run: npm run test:ci
+      - name: Production Web export
+        run: npm run build:web
+
+  public-copy:
+    name: public-copy
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@1af3b93b6815bc44a9784bd300feb67ff0d1eeb3 # v6.0.0
+        with:
+          persist-credentials: false
+      - uses: actions/setup-python@83679a892e2d95755f2dac6acb0bfd1e9ac5d548 # v6.1.0
+        with:
+          python-version: "3.12"
+      - name: Public-copy policy
+        run: python scripts/check_public_copy.py .
+      - name: Set up pinned secret scanner
+        id: gitleaks
+        uses: gacts/gitleaks@a606754f644d9def4dd7fed01c3962ba08863ca8
+        with:
+          version: "8.24.3"
+          run: "false"
+      - name: Scan working-tree secrets
+        env:
+          GITLEAKS_BINARY: ${{ steps.gitleaks.outputs.gitleaks-bin }}
+        run: '"$GITLEAKS_BINARY" dir . --redact --no-banner --exit-code 1'
+
+  case-study-site:
+    name: case-study-site
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+    defaults:
+      run:
+        working-directory: showcase/site
+    steps:
+      - uses: actions/checkout@1af3b93b6815bc44a9784bd300feb67ff0d1eeb3 # v6.0.0
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@2028fbc5c25fe9cf00d9f06a71cc4710d4507903 # v6.0.0
+        with:
+          node-version: "24.19.0"
+          cache: npm
+          cache-dependency-path: showcase/site/package-lock.json
+      - name: Install Case Study dependencies
+        run: npm ci
+      - name: Unit tests
+        run: npm test -- --run
+      - name: Content policy
+        run: npm run test:policy
+      - name: Production build
+        run: npm run build
+
+  case-study-e2e:
+    name: case-study-e2e
+    needs: case-study-site
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+    defaults:
+      run:
+        working-directory: showcase/site
+    steps:
+      - uses: actions/checkout@1af3b93b6815bc44a9784bd300feb67ff0d1eeb3 # v6.0.0
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@2028fbc5c25fe9cf00d9f06a71cc4710d4507903 # v6.0.0
+        with:
+          node-version: "24.19.0"
+          cache: npm
+          cache-dependency-path: showcase/site/package-lock.json
+      - name: Install Case Study dependencies
+        run: npm ci
+      - name: Install Chromium
+        run: npx playwright install --with-deps chromium
+      - name: Responsive and accessibility browser checks
+        run: npm run test:e2e

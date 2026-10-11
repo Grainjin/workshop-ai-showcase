@@ -1,0 +1,40 @@
+{
+  "expo": {
+    "name": "Workshop AI",
+    "slug": "workshop-ai",
+    "version": "1.0.0",
+    "orientation": "portrait",
+    "icon": "./assets/icon.png",
+    "userInterfaceStyle": "light",
+    "scheme": [
+      "workshopai",
+      "com.comp5703.workshopai"
+    ],
+    "ios": {
+      "supportsTablet": true,
+      "bundleIdentifier": "com.comp5703.workshopai",
+      "usesAppleSignIn": true
+    },
+    "android": {
+      "package": "com.comp5703.workshopai",
+      "adaptiveIcon": {
+        "backgroundColor": "#E6F4FE",
+        "foregroundImage": "./assets/android-icon-foreground.png",
+        "backgroundImage": "./assets/android-icon-background.png",
+        "monochromeImage": "./assets/android-icon-monochrome.png"
+      },
+      "predictiveBackGestureEnabled": false
+    },
+    "web": {
+      "favicon": "./assets/favicon.png",
+      "bundler": "metro",
+      "output": "single",
+      "name": "Workshop AI"
+    },
+    "plugins": [
+      "@react-native-community/datetimepicker",
+      "expo-web-browser",
+      "expo-apple-authentication"
+    ]
+  }
+}
