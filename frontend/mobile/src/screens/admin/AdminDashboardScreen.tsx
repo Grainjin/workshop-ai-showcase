@@ -31,6 +31,7 @@ import { MarketplaceBreakdownCard } from "../../components/MarketplaceBreakdownC
 import { PrimaryButton } from "../../components/PrimaryButton";
 import { SecondaryButton } from "../../components/SecondaryButton";
 import { TextField } from "../../components/TextField";
+import { DEMO_MODE } from "../../config/env";
 import { colors, radius, spacing } from "../../theme/theme";
 import type { PaymentHistoryEntry, RefundRequestSummary } from "../../types/booking";
 import type { AdminSubmerchant } from "../../types/marketplace";
@@ -373,7 +374,7 @@ export function AdminDashboardScreen() {
 
       {message ? <Text style={styles.errorText}>{message}</Text> : null}
 
-      <AISubscriptionPanel />
+      {!DEMO_MODE ? <AISubscriptionPanel /> : null}
 
       <View style={styles.section}>
         <ProviderVerificationAdminPanel />

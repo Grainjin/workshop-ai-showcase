@@ -65,7 +65,9 @@ class DemoAIRoute(APIRoute):
         handler = super().get_route_handler()
         unsupported = self.path in {
             "/ai/chat", "/ai/chat/async", "/ai/recommend-providers",
-        } or self.path.startswith(("/ai/health/", "/ai/tasks", "/ai/milvus/"))
+        } or (self.path == "/ai/oauth" and "GET" in self.methods) or self.path.startswith(
+            ("/ai/health/", "/ai/tasks", "/ai/milvus/")
+        )
 
         async def guarded_handler(request: Request):
             if is_demo_mode() and unsupported:

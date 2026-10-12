@@ -18,6 +18,7 @@ DISABLED = [
     ("GET", "/ai/tasks"), ("GET", "/ai/tasks/not-a-task"),
     ("GET", "/ai/health/qwen"), ("GET", "/ai/health/embedding"),
     ("GET", "/ai/health/redis"), ("GET", "/ai/health/milvus"),
+    ("GET", "/ai/oauth"),
     ("POST", "/ai/milvus/review-collection"),
     ("POST", "/ai/milvus/sync-reviews"),
     ("POST", "/ai/milvus/retry-failed-reviews"),
@@ -60,7 +61,8 @@ def test_disabled_ai_routes_hide_before_body_dependencies_or_external_work(monke
         app.dependency_overrides[dep] = forbidden
     for name in ("test_qwen_chat", "generate_embedding", "parse_user_service_need",
                  "enqueue_all_review_embeddings_sync", "enqueue_review_embedding_sync",
-                 "check_redis_connection", "check_milvus_connection", "create_review_collection"):
+                 "check_redis_connection", "check_milvus_connection", "create_review_collection",
+                 "subscription_status"):
         monkeypatch.setattr(ai, name, forbidden)
     monkeypatch.setattr(ai.ai_chat_task, "delay", forbidden)
     try:
@@ -71,6 +73,34 @@ def test_disabled_ai_routes_hide_before_body_dependencies_or_external_work(monke
     finally:
         for dep in (get_db, require_verified_user, require_admin):
             app.dependency_overrides.pop(dep, None)
+
+
+def test_demo_oauth_status_is_hidden_before_operator_status_read(monkeypatch):
+    monkeypatch.setattr(config, "DEMO_MODE", True)
+    def forbidden():
+        pytest.fail("Demo reached operator credential/status read")
+    monkeypatch.setattr(ai, "subscription_status", forbidden)
+    app.dependency_overrides[require_admin] = lambda: models.User(id=1, role="admin")
+    try:
+        response = TestClient(app).get("/ai/oauth")
+        assert response.status_code == 404, response.text
+        assert response.json()["error"]["detail"] == "Not found"
+    finally:
+        app.dependency_overrides.pop(require_admin, None)
+
+
+def test_local_full_oauth_status_preserves_operator_panel_response(monkeypatch):
+    monkeypatch.setattr(config, "DEMO_MODE", False)
+    status = {"auth": "key", "key": {"configured": False, "api_key_preview": ""},
+              "chatgpt": {"connected": False}, "grok": {"connected": False}}
+    monkeypatch.setattr(ai, "subscription_status", lambda: status)
+    app.dependency_overrides[require_admin] = lambda: models.User(id=1, role="admin")
+    try:
+        response = TestClient(app).get("/ai/oauth")
+        assert response.status_code == 200, response.text
+        assert response.json()["data"] == status
+    finally:
+        app.dependency_overrides.pop(require_admin, None)
 
 
 @pytest.mark.parametrize("path,payload", SUPPORTED)

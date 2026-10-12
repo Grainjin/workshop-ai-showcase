@@ -2,9 +2,9 @@
 
 Workshop AI 是面向本地生活服务的双边平台：客户按服务类型和地区发现服务商，沟通需求、预约上门、确认报价、支付并评价。演示数据位于伊斯坦布尔，金额单位为土耳其里拉（TRY）。本仓库是个人求职展示版本，包含 FastAPI 后端、Expo 多端应用，以及中文 Case Study 网站。
 
-先看 [Case Study 网站源码](showcase/site)，再体验客户、服务商与管理员三种角色。公开 Demo 正在准备 Vercel / Railway 部署，目前没有已验收的线上地址；[部署说明](docs/public-deployment.md)和[发布前检查表](docs/release/pre-publication-checklist.md)记录当前边界。作品集 PDF 仍是待修订草稿，当前不作为提交材料或公开下载交付。
+先看 [产品介绍网站](https://jinzhan-ai-coding.vercel.app)，再打开 [在线 Demo](https://jinzhan-ai-coding-demo.vercel.app) 体验客户、服务商与管理员三种角色，也可下载 [完整产品介绍 PDF](https://jinzhan-ai-coding.vercel.app/documents/Workshop-AI-Product-Introduction-Zhan-Jin.pdf)。Demo 使用虚构数据与模拟支付；[部署说明](docs/public-deployment.md)和[发布前检查表](docs/release/pre-publication-checklist.md)记录部署与验收边界。录屏已按用户决定暂停。
 
-English summary: Workshop AI is a local-services marketplace with a FastAPI backend, an Expo app and a Chinese recruiter-facing case study. The local full stack supports optional integrations; the public demo uses seeded roles and simulated payments. Hosted acceptance is pending, and the portfolio PDF remains a draft.
+English summary: Workshop AI is a local-services marketplace with a FastAPI backend, an Expo app and a Chinese product introduction. The public website, role-based Demo and downloadable product-introduction PDF are linked above. The Demo uses fictional data, simulated payments and database review context. Recording is deferred; the ordinary AI-chat serialization fix still needs deployment and live revalidation before full hosted acceptance can be claimed.
 
 ## 能力与演示边界
 
@@ -17,11 +17,11 @@ English summary: Workshop AI is a local-services marketplace with a FastAPI back
 | 环境 | 组成与用途 | 支付、AI 与账户边界 |
 | --- | --- | --- |
 | 本地完整版（local-full） | Docker Compose：PostgreSQL、Redis、API、Celery、Expo Web、Milvus、TEI | 默认 `DEMO_MODE=false`，使用 iyzico Sandbox；模型、OAuth、Places、SMTP 由开发者自行配置 |
-| 公开演示（public-demo，部署准备中） | 两个独立静态站点（Case Study 与 Expo Web）+ Railway API/PostgreSQL；可选 Redis | `DEMO_MODE=true`、`WORKSHOP_PAYMENT_MODE=demo`；一键角色、模拟支付、敏感动作限制、AI 配额；可省略 Milvus/TEI/Celery |
+| 公开演示（public-demo） | 两个独立静态站点（Case Study 与 Expo Web）+ Railway API/PostgreSQL；可选 Redis | `DEMO_MODE=true`、`WORKSHOP_PAYMENT_MODE=demo`；一键角色、模拟支付、敏感动作限制、AI 配额；可省略 Milvus/TEI/Celery |
 
 模拟支付不扣款，Sandbox 卡和商户资料均为厂商测试样例。公开演示不可用于真实订单、真实身份证件或真实支付资料。演示角色共享数据，运营重置会清空演示修改；重置必须由操作员通过专用命令执行，普通 API 重启不触发重置。
 
-AI 不是基础流程的必需依赖。公开模式有每日和每分钟请求配额，但配额不等于金额预算；A$30 月度上限仍需平台预算／告警、用量观察和停用预案配合。托管核心流程、实际模型提供商、费用上限与新录屏尚待后续验收，不把本地测试等同于线上验收。
+AI 不是基础流程的必需依赖。公开模式有每日和每分钟请求配额，但配额不等于金额预算；A$30 月度上限仍需平台预算／告警、用量观察和停用预案配合。公开 Demo 的评论检索使用数据库上下文；普通 AI 对话的预约日期序列化修复仍待部署后线上复验，完整托管验收尚未完成，不把本地测试等同于线上验收。录屏暂不制作。
 
 ## 架构与目录
 
@@ -124,11 +124,11 @@ docker compose exec api python -m backend.seed_sandbox_submerchants --provider-i
 | `IYZICO_*` | Sandbox 凭据、回调、返回地址与 checkout 超时 |
 | `EXPO_PUBLIC_API_BASE_URL`、`EXPO_PUBLIC_WS_BASE_URL` | 构建时注入 API／WS 地址；公开部署要求 HTTPS／WSS |
 
-前端 `EXPO_PUBLIC_*` 与 Case Study `VITE_*` 会进入浏览器构建，不能保存秘密。精确环境值、AI 降级、重置与回滚步骤见 [环境矩阵](docs/deployment/environment-matrix.md)、[演示运维](docs/deployment/public-demo.md)和[回滚手册](docs/deployment/rollback.md)。`.env.example` 与未来的 `.env.production.example` 仅允许无秘密模板；真实平台地址确定后再创建生产模板。
+前端 `EXPO_PUBLIC_*` 与 Case Study `VITE_*` 会进入浏览器构建，不能保存秘密。精确环境值、AI 降级、重置与回滚步骤见 [环境矩阵](docs/deployment/environment-matrix.md)、[演示运维](docs/deployment/public-demo.md)和[回滚手册](docs/deployment/rollback.md)。两个前端目录的 `.env.production.example` 提供实际公开地址和 Demo 标志；模板不包含凭据，服务端密钥仅存于平台或服务器配置。
 
 Google 登录需配置 Web、iOS、Android OAuth client ID，后端配置受众列表，前端配置对应 `EXPO_PUBLIC_GOOGLE_*_CLIENT_ID`；iOS／Android 需要 development build，Expo Go 不支持该重定向。Apple 登录仅 iOS，bundle ID 为 `com.comp5703.workshopai`，需开启 Sign in with Apple；Expo Go 测试可增加 `host.exp.Exponent` 受众。新账户需要接受条款。
 
-模型提供商支持 `qwen`、`openai`（`gpt`）、`claude`、`kimi`、`kimi-code`、`deepseek`、`grok`、`custom`，以 `backend/llm_provider.py` 的实现与显式覆盖为准。本地管理员 Customer AI 页面可配置开发者 API 或受支持的订阅登录，配置会以 `0600` 写入忽略的 `backend/certs/`，覆盖本地环境直到清除。公开 Demo 的管理员敏感配置受限；本次检查未验收实际提供商／订阅登录，也没有付费调用。
+模型提供商支持 `qwen`、`openai`（`gpt`）、`claude`、`kimi`、`kimi-code`、`deepseek`、`grok`、`custom`，以 `backend/llm_provider.py` 的实现与显式覆盖为准。本地管理员 Customer AI 页面可配置开发者 API 或受支持的订阅登录，配置会以 `0600` 写入忽略的 `backend/certs/`，覆盖本地环境直到清除。公开 Demo 隐藏管理员模型配置面板和凭据状态入口；普通对话、工具与用户确认流程保留。实际模型身份、费用和订阅登录未独立验收。
 
 ## Case Study 与验证
 
@@ -139,7 +139,7 @@ npm run dev
 # npm test -- --run / npm run test:policy / npm run build / npm run test:e2e
 ```
 
-网站的公开链接通过 `.env.example` 说明的构建配置注入；没有确认地址时显示准备状态。当前 PDF 保留为本地草稿，待后续修订后再考虑加入公开快照。
+网站的公开链接通过 `.env.production.example` 的构建配置注入；完整产品介绍 PDF 随网站提供下载。录屏入口保留并明确提示待补充，当前没有可播放的录屏；真实产品截图、在线 Demo 和源码入口保留。
 
 后端可运行 `pytest -q` 与 `ruff check backend tests scripts`；完整迁移／重置验证需要独立 PostgreSQL 测试数据库。前端运行 `npm run test:ci`、`npm run typecheck`、`npm run build:web`。公开内容使用 `python scripts/check_public_copy.py .` 与固定版本 Gitleaks 检查。CI 检查构建、迁移、策略与网站响应式体验；托管线上核心流程仍需后续独立验收。
 
