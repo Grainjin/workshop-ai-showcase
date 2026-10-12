@@ -2,9 +2,9 @@
 
 Workshop AI 是面向本地生活服务的双边平台：客户按服务类型和地区发现服务商，沟通需求、预约上门、确认报价、支付并评价。演示数据位于伊斯坦布尔，金额单位为土耳其里拉（TRY）。本仓库是个人求职展示版本，包含 FastAPI 后端、Expo 多端应用，以及中文 Case Study 网站。
 
-先看 [产品介绍网站](https://jinzhan-ai-coding.vercel.app)，再打开 [在线 Demo](https://jinzhan-ai-coding-demo.vercel.app) 体验客户、服务商与管理员三种角色，也可下载 [完整产品介绍 PDF](https://jinzhan-ai-coding.vercel.app/documents/Workshop-AI-Product-Introduction-Zhan-Jin.pdf)。Demo 使用虚构数据与模拟支付；[部署说明](docs/public-deployment.md)和[发布前检查表](docs/release/pre-publication-checklist.md)记录部署与验收边界。录屏已按用户决定暂停。
+先看 [产品介绍网站](https://jinzhan-ai-coding.vercel.app)，再打开 [在线 Demo](https://jinzhan-ai-coding-demo.vercel.app) 体验客户、服务商与管理员三种角色，也可下载 [完整产品介绍 PDF](https://jinzhan-ai-coding.vercel.app/documents/Workshop-AI-Product-Introduction-Zhan-Jin.pdf) 或查看 [公开源码](https://github.com/Grainjin/workshop-ai-showcase)。Demo 使用虚构数据与模拟支付；[发布记录](docs/release/publication-record.md)、[部署说明](docs/public-deployment.md)和[发布前检查表](docs/release/pre-publication-checklist.md)记录部署与验收边界。录屏已按用户决定暂停，入口保留待补充提示。
 
-English summary: Workshop AI is a local-services marketplace with a FastAPI backend, an Expo app and a Chinese product introduction. The public website, role-based Demo and downloadable product-introduction PDF are linked above. The Demo uses fictional data, simulated payments and database review context. Recording is deferred; the ordinary AI-chat serialization fix still needs deployment and live revalidation before full hosted acceptance can be claimed.
+English summary: Workshop AI is a local-services marketplace with a FastAPI backend, an Expo app and a Chinese product introduction. The public website, role-based Demo, approved PDF and public source are linked above. The Demo uses fictional data, simulated payments and database review context. Core checks and live ordinary AI chat passed on the earlier release; final desktop and phone-width Admin isolation checks passed on the latest deployment. The newest CI run was cancelled in its backend job, with four other jobs passing; it is not a complete green result. Recording and the frontend rollback rehearsal remain deferred; this is not a claim that every release item is complete.
 
 ## 能力与演示边界
 
@@ -21,7 +21,7 @@ English summary: Workshop AI is a local-services marketplace with a FastAPI back
 
 模拟支付不扣款，Sandbox 卡和商户资料均为厂商测试样例。公开演示不可用于真实订单、真实身份证件或真实支付资料。演示角色共享数据，运营重置会清空演示修改；重置必须由操作员通过专用命令执行，普通 API 重启不触发重置。
 
-AI 不是基础流程的必需依赖。公开模式有每日和每分钟请求配额，但配额不等于金额预算；A$30 月度上限仍需平台预算／告警、用量观察和停用预案配合。公开 Demo 的评论检索使用数据库上下文；普通 AI 对话的预约日期序列化修复仍待部署后线上复验，完整托管验收尚未完成，不把本地测试等同于线上验收。录屏暂不制作。
+AI 不是基础流程的必需依赖。公开模式有每日和每分钟请求配额，但配额不等于金额预算；原 A$30 月度目标由基础设施 US$8 软提醒／US$10 全部资源停用阈值与模型 US$2 停用阈值配合控制，实际汇率和账单仍需观察。公开 Demo 的评论检索使用数据库上下文；普通 AI 对话已在线复验：订单302返回确认草稿，取消草稿不执行业务，随后由客户显式确认完成，既有订单301保留。版本 `718781d` 的25项 REST／桌面／手机宽度检查，以及最新版本 `b402a48` 的2项管理员隔离检查通过，合计27项；这不表示全部检查都在最新版本重跑。最新CI的后端项取消、其他4项通过，未形成完整全绿结果；关键改动另有定向测试与线上验收。录屏暂不制作，前端回滚演练与月度运维留待补充，详见发布记录。
 
 ## 架构与目录
 
@@ -141,7 +141,7 @@ npm run dev
 
 网站的公开链接通过 `.env.production.example` 的构建配置注入；完整产品介绍 PDF 随网站提供下载。录屏入口保留并明确提示待补充，当前没有可播放的录屏；真实产品截图、在线 Demo 和源码入口保留。
 
-后端可运行 `pytest -q` 与 `ruff check backend tests scripts`；完整迁移／重置验证需要独立 PostgreSQL 测试数据库。前端运行 `npm run test:ci`、`npm run typecheck`、`npm run build:web`。公开内容使用 `python scripts/check_public_copy.py .` 与固定版本 Gitleaks 检查。CI 检查构建、迁移、策略与网站响应式体验；托管线上核心流程仍需后续独立验收。
+后端可运行 `pytest -q` 与 `ruff check backend tests scripts`；完整迁移／重置验证需要独立 PostgreSQL 测试数据库。前端运行 `npm run test:ci`、`npm run typecheck`、`npm run build:web`。公开内容使用 `python scripts/check_public_copy.py .` 与固定版本 Gitleaks 检查。先前完整托管 CI 和已记录的线上核心／管理员隔离检查通过；最新CI及延期项目的状态以发布记录为准。
 
 认证密码保存在 `authentication_identities`；JWT 的 `sub` 为用户 ID，`sid` 绑定 refresh-token `jti` 以支持退出撤销。`/ws/me` 与 `/ws/chats/{id}` 连接后要求先发送 `{ "type": "auth", "token": "<access_token>" }`。
 

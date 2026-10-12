@@ -2,7 +2,8 @@
 
 Use the repository root for the Railway API project, `frontend/mobile` for the
 Vercel Demo project, and `showcase/site` for the separate Vercel Case Study project.
-All hosts below are non-secret examples. Replace them with the provisioned URLs.
+The public hosts below are provisioned, non-secret addresses. Release evidence
+and remaining checks are recorded in [publication record](release/publication-record.md).
 
 ## Railway API
 
@@ -18,7 +19,7 @@ Provision these environment variables in Railway's private secret store:
 WORKSHOP_PUBLIC_DEPLOYMENT=true
 DEMO_MODE=true
 WORKSHOP_PAYMENT_MODE=demo
-WORKSHOP_CORS_ORIGINS=https://demo.example.com,https://case.example.com
+WORKSHOP_CORS_ORIGINS=https://jinzhan-ai-coding-demo.vercel.app,https://jinzhan-ai-coding.vercel.app
 WORKSHOP_DATABASE_URL=<private PostgreSQL URL using postgresql+psycopg://>
 ```
 
@@ -73,8 +74,8 @@ Use Node 24 and the committed lockfile. Set only public build variables:
 ```dotenv
 EXPO_PUBLIC_PUBLIC_DEPLOYMENT=true
 EXPO_PUBLIC_DEMO_MODE=true
-EXPO_PUBLIC_API_BASE_URL=https://api.example.com
-EXPO_PUBLIC_WS_BASE_URL=wss://api.example.com
+EXPO_PUBLIC_API_BASE_URL=https://jinzhan-ai-coding-api.up.railway.app
+EXPO_PUBLIC_WS_BASE_URL=wss://jinzhan-ai-coding-api.up.railway.app
 ```
 
 Public mode requires explicit HTTPS API and WSS WebSocket origins; credentials,
@@ -90,12 +91,13 @@ exports the Expo Web app to `dist` and rewrites direct SPA navigation to
 ## Vercel Case Study build
 
 ```dotenv
-VITE_DEMO_URL=https://demo.example.com
-VITE_GITHUB_URL=https://github.com/example/workshop-ai-showcase
-VITE_SITE_URL=https://case.example.com
+VITE_DEMO_URL=https://jinzhan-ai-coding-demo.vercel.app
+VITE_GITHUB_URL=https://github.com/Grainjin/workshop-ai-showcase
+VITE_CANONICAL_URL=https://jinzhan-ai-coding.vercel.app
 ```
 
-The existing release-link validation checks these public URLs. Vercel builds
+The site uses `VITE_CANONICAL_URL` for canonical/Open Graph metadata; production
+examples use that exact key. The existing validation checks these public URLs. Vercel builds
 the Vite site to `dist`; direct SPA navigation resolves to `index.html`. No
 private credentials belong in `VITE_*` variables.
 

@@ -1,7 +1,9 @@
 # Demo release and maintenance
 
-This runbook prepares release operations. Committed configuration, passing local
-checks and a CI handoff do not prove a cloud deployment or cron activation.
+This runbook describes release operations. The public repository and provisioned
+services now have verified release evidence; see the [publication record](../release/publication-record.md).
+Committed configuration, passing local checks and a CI handoff alone do not prove
+a cloud deployment or cron activation.
 Use the [environment matrix](environment-matrix.md) and existing
 [platform configuration](../public-deployment.md) for exact variables.
 
@@ -13,18 +15,20 @@ mobile, public-copy/secret checks, Case Study unit/build and browser checks.
 The handoff only runs after all CI jobs pass and records the commit SHA. Deploy
 that exact commit; a new commit needs a new full CI gate.
 
-The personal repository is currently private; the account plan is unknown.
+The personal repository is now public at [Grainjin/workshop-ai-showcase](https://github.com/Grainjin/workshop-ai-showcase).
+The original private-preview approval limitations below explain the current
+workflow guard; public visibility alone does not configure a protected environment.
 An environment name alone is not approval: GitHub can auto-create an absent
 environment without protection. Private environment access requires eligible
 plans, and required-reviewer rules on Free/Pro/Team are public-only, according to
 [GitHub environment documentation](https://docs.github.com/en/actions/how-tos/deploy/configure-and-manage-deployments/manage-environments).
-No paid upgrade is authorized. Consequently `operation=external-deploy` always
+No paid GitHub upgrade is authorized. The existing `operation=external-deploy` still
 fails visibly after CI. The workflow has no cloud credentials and no environment
 reference that could create an unprotected environment. Do not add secrets to an
 unverified private environment or enable automatic cloud deployment from pushes.
 
-Initial private preview uses the already authorized native platforms after the CI
-gate. A later public-repository GitHub deployment path requires a separately
+The release uses the authorized native platforms after the CI gate. A future
+GitHub deployment path requires a separately
 reviewed implementation: first verify the actual environment exists with required
 reviewers, prevent self-approval, restrict release branches, and test that access
 to secrets is blocked before approval. Then use environment-scoped project tokens
@@ -94,9 +98,10 @@ environment IDs, and never attach LLM keys or broad shared secret groups.
 The schedule is 04:00 Sydney during daylight saving and 03:00 during standard
 time. [Railway cron jobs](https://docs.railway.com/cron-jobs) use UTC, require the
 process to exit, and skip an occurrence if the previous execution is still active.
-There is no restart loop. Actual schedule activation and runtime secret provisioning
-belong to Task 5. Confirm the applied schedule and first completed execution;
-configuration committed here does not install it.
+There is no restart loop. As of 2026-10-12 the daily 17:00 UTC schedule is active and
+its first execution succeeded. Confirm later executions from actual completion;
+configuration committed here does not itself install a schedule. No reset was
+performed during the final documentation update.
 
 The manual GitHub **Demo reset isolated dry run** workflow migrates its own runner
 PostgreSQL database, runs the real reset CLI, and verifies reset safety/rollback.
