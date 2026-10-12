@@ -17,11 +17,10 @@ describe('English summary without JavaScript', () => {
     const html = await builtHtml();
     const summary = html.match(/<noscript>[\s\S]*?<\/noscript>/)?.[0] ?? '';
     expect(summary).toContain('lang="en"');
-    expect(summary).toContain('Personal showcase maintenance');
-    expect(summary).toContain('Tool Calling');
-    expect(summary).toContain('FastAPI, PostgreSQL');
-    expect(summary).toContain('Fictional data and simulated transactions');
-    expect(summary).toContain('Public URLs and the walkthrough are being prepared');
+    expect(summary.match(/<p>/g)?.length).toBeGreaterThanOrEqual(4);
+    expect(summary).toMatch(/href="\/documents\/[^\"]+\.pdf" download/);
+    expect(summary).toContain('href="tel:15366123264"');
+    expect(summary).toContain('href="mailto:jinzhan_2023@163.com"');
     expect(summary).not.toMatch(/href="#/);
   });
 

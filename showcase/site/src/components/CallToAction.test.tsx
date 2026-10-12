@@ -4,11 +4,11 @@ import { CallToAction } from './CallToAction';
 import { createReleaseLinks } from '../content/release-links';
 
 describe('usable release fallbacks', () => {
-  it('keeps unavailable Demo at release status and sends unavailable video to the honest walkthrough', () => {
+  it('keeps unavailable Demo/source at experience guidance and video at product captures', () => {
     const [demo, video, github] = createReleaseLinks({});
-    expect(renderToStaticMarkup(<CallToAction action={demo} />)).toContain('href="#release-status"');
+    expect(renderToStaticMarkup(<CallToAction action={demo} />)).toContain('href="#experience"');
     expect(renderToStaticMarkup(<CallToAction action={video} />)).toContain('href="#walkthrough"');
-    expect(renderToStaticMarkup(<CallToAction action={github} />)).toContain('href="#release-status"');
+    expect(renderToStaticMarkup(<CallToAction action={github} />)).toContain('href="#experience"');
     expect(renderToStaticMarkup(<CallToAction action={video} language="en" />)).toContain('In preparation');
   });
 

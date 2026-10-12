@@ -1,11 +1,12 @@
 <svg xmlns="http://www.w3.org/2000/svg" width="1200" height="630" viewBox="0 0 1200 630" role="img" aria-labelledby="title description">
-  <title id="title">Workshop AI 产品案例</title><desc id="description">从服务发现到预约履约的 AI 本地服务交易平台</desc>
-  <rect width="1200" height="630" fill="#0d1624"/>
-  <path d="M72 104h1056" stroke="#35465e" stroke-width="2"/>
-  <g font-family="-apple-system,BlinkMacSystemFont,Segoe UI,PingFang SC,Microsoft YaHei,sans-serif">
-    <text x="72" y="190" fill="#8edaca" font-size="26">产品案例 · 求职展示版</text>
-    <text x="72" y="300" fill="#edf3fb" font-size="76" font-weight="600">Workshop AI</text>
-    <text x="72" y="375" fill="#edf3fb" font-size="42">AI 本地服务交易平台</text>
-    <text x="72" y="510" fill="#b5c4d8" font-size="28">发现 · 比较 · 预约 · 履约</text>
+  <title id="title">Workshop AI 产品设计与实现</title><desc id="description">AI 辅助的本地服务平台：表达与理解、核对与决定、规则与执行</desc>
+  <rect width="1200" height="630" fill="#f8f7f3"/>
+  <path d="M72 104h1056" stroke="#d7e2e5" stroke-width="2"/>
+  <g font-family="Songti SC,SimSun,Noto Serif SC,serif">
+    <text x="72" y="190" fill="#23786f" font-size="26">本地生活服务 / AI 产品设计</text>
+    <text x="72" y="300" fill="#23786f" font-family="Arial,sans-serif" font-size="76" font-weight="700">Workshop AI</text>
+    <text x="72" y="375" fill="#172b38" font-size="42">AI 辅助的本地服务平台</text>
+    <text x="72" y="510" fill="#546473" font-size="28">表达与理解 · 核对与决定 · 规则与执行</text>
+    <text x="72" y="566" fill="#546473" font-size="22">产品设计与实现 · Zhan Jin</text>
   </g>
 </svg>

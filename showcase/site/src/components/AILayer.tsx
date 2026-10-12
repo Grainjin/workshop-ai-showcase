@@ -1,6 +1,7 @@
 import type { CaseStudyContent } from '../content/types';
 import NarrativeSection, { Details } from './NarrativeSection';
 import DiagramFigure from './DiagramFigure';
+import { ProductCapture } from './Walkthrough';
 
 export default function AILayer({ content }: { content: CaseStudyContent['aiLayer'] }) {
   return (
@@ -14,6 +15,7 @@ export default function AILayer({ content }: { content: CaseStudyContent['aiLaye
           </li>)}
         </ol>
       </div>
+      <div className="ai-capture"><ProductCapture capture={content.capture} /></div>
     </NarrativeSection>
   );
 }

@@ -2,9 +2,9 @@ import { expect, test, type Page } from 'playwright/test';
 import { loadViteReleaseEnvironment } from './vite-release-environment';
 
 const releaseTargets = [
-  { label: '在线体验', variable: 'VITE_DEMO_URL', fallback: '#release-status' },
+  { label: '在线体验', variable: 'VITE_DEMO_URL', fallback: '#experience' },
   { label: '观看 Demo', variable: 'VITE_VIDEO_URL', fallback: '#walkthrough' },
-  { label: '查看 GitHub', variable: 'VITE_GITHUB_URL', fallback: '#release-status' },
+  { label: '查看 GitHub', variable: 'VITE_GITHUB_URL', fallback: '#experience' },
 ] as const;
 
 const releaseEnvironment = loadViteReleaseEnvironment();
@@ -23,13 +23,33 @@ test.afterEach(async ({ page }) => {
   expect(browserErrors.get(page)).toEqual([]);
 });
 
-test('the page fits the viewport and loads without browser errors', async ({ page }) => {
+test('the page fits the viewport and loads without browser errors', async ({ page }, testInfo) => {
   await page.locator('footer').scrollIntoViewIfNeeded();
-  await expect(page.locator('.walkthrough-gallery img')).toHaveCount(2);
+  await expect(page.locator('.walkthrough-gallery img')).toHaveCount(7);
   await expect.poll(() => page.evaluate(() => ({
     document: document.documentElement.scrollWidth - document.documentElement.clientWidth,
     body: document.body.scrollWidth - document.documentElement.clientWidth,
   }))).toEqual({ document: 0, body: 0 });
+  for (const image of await page.locator('.product-capture img, .diagram-figure img').all()) {
+    // Hidden engineering diagrams become visible only when their native details opens.
+    if (await image.isVisible()) {
+      await image.scrollIntoViewIfNeeded();
+      await expect.poll(() => image.evaluate((element: HTMLImageElement) => element.complete && element.naturalWidth > 0)).toBe(true);
+    }
+  }
+  await page.evaluate(() => window.scrollTo({ top: 0, behavior: 'instant' }));
+  await page.screenshot({ path: testInfo.outputPath('overview.png') });
+  await page.screenshot({ path: testInfo.outputPath('whole-page.png'), fullPage: true });
+});
+
+test('a self-hosted SC serif font loads for devices without Songti', async ({ page, request }) => {
+  const response = await request.get('/fonts/workshop-song-sc-regular.woff2');
+  expect(response.status()).toBe(200);
+  expect((await response.body()).subarray(0, 4).toString()).toBe('wOF2');
+  expect(await page.evaluate(async () => {
+    const loaded = await document.fonts.load('17px "Workshop Song SC"', '需求报价确认');
+    return loaded.length > 0 && loaded.every(font => font.status === 'loaded');
+  })).toBe(true);
 });
 
 test('keyboard focus reveals the skip link and reaches main content', async ({ page }) => {
@@ -60,7 +80,7 @@ test('section navigation and the English summary have working return paths', asy
   await expect(page).toHaveURL(/#overview$/);
 });
 
-test('primary actions lead to configured URLs or the release explanation', async ({ page }) => {
+test('primary actions lead to configured URLs or useful experience guidance', async ({ page }) => {
   const actions = page.getByRole('navigation', { name: '产品入口' });
   for (const { label, variable, fallback } of releaseTargets) {
     const link = actions.getByRole('link', { name: new RegExp(`^${label} ·`) });
@@ -83,20 +103,45 @@ test('video availability is honest and the static evidence remains usable', asyn
   const walkthrough = page.locator('#walkthrough');
   const configured = releaseEnvironment.VITE_VIDEO_URL?.trim();
   if (configured) {
-    await expect(walkthrough.getByRole('link', { name: '观看已配置产品录屏' })).toHaveAttribute('href', new URL(configured).href);
-    await expect(walkthrough).toContainText('产品录屏入口已配置');
+    await expect(walkthrough.getByRole('link', { name: '观看产品录屏' })).toHaveAttribute('href', new URL(configured).href);
   } else {
-    await expect(walkthrough).toContainText('60–90 秒录屏准备中');
+    await expect(walkthrough).toContainText('产品录屏尚未配置');
     await expect(walkthrough.locator('video, source[src$=".mp4"]')).toHaveCount(0);
-    await expect(walkthrough.getByRole('link', { name: '查看 Live Demo 准备状态' })).toHaveAttribute('href', '#release-status');
+    const demoConfigured = releaseEnvironment.VITE_DEMO_URL?.trim();
+    await expect(walkthrough.getByRole('link', { name: demoConfigured ? '打开在线 Demo' : '查看体验方式与边界' }))
+      .toHaveAttribute('href', demoConfigured ? new URL(demoConfigured).href : '#experience');
   }
   const images = walkthrough.locator('.walkthrough-gallery img');
-  await expect(images).toHaveCount(2);
+  await expect(images).toHaveCount(7);
   for (const image of await images.all()) {
     await image.scrollIntoViewIfNeeded();
     await expect.poll(() => image.evaluate((element: HTMLImageElement) => element.complete && element.naturalWidth > 0)).toBe(true);
-    await expect(image).toHaveAttribute('alt', /历史验证截图/);
+    expect((await image.getAttribute('alt'))?.length).toBeGreaterThan(8);
   }
+});
+
+test('engineering details expand and collapse with the keyboard', async ({ page }) => {
+  const details = page.locator('.engineering-details');
+  const summary = details.locator('summary');
+  await expect(details.locator('#architecture')).not.toBeVisible();
+  await summary.focus();
+  await page.keyboard.press('Enter');
+  await expect(details.locator('#architecture')).toBeVisible();
+  await expect(details.locator('#evidence')).toBeVisible();
+  await page.keyboard.press('Space');
+  await expect(details.locator('#architecture')).not.toBeVisible();
+});
+
+test('the visible PDF download serves the approved actual PDF', async ({ page, request }) => {
+  const download = page.getByRole('link', { name: /下载完整产品介绍 PDF/ });
+  await expect(download).toBeVisible();
+  await expect(download).toHaveAttribute('download', '');
+  const url = await download.getAttribute('href');
+  expect(url).toBe('/documents/Workshop-AI-Product-Introduction-Zhan-Jin.pdf');
+  const response = await request.get(url!);
+  expect(response.status()).toBe(200);
+  expect(response.headers()['content-type']).toContain('application/pdf');
+  expect((await response.body()).subarray(0, 5).toString()).toBe('%PDF-');
 });
 
 test('reduced motion disables smooth scrolling', async ({ page }) => {

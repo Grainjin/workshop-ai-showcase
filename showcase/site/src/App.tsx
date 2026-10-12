@@ -21,16 +21,19 @@ export default function App() {
         <Hero content={caseStudy.hero} />
         <ProblemStatement content={caseStudy.problem} />
         <ProductJourney content={caseStudy.journey} />
+        <DecisionSupport content={caseStudy.decisionSupport} />
         <Walkthrough content={caseStudy.walkthrough} />
         <AILayer content={caseStudy.aiLayer} />
-        <DecisionSupport content={caseStudy.decisionSupport} />
-        <ArchitectureComparison content={caseStudy.architecture} />
         <NarrativeSection content={caseStudy.showcaseEdition}><Details items={caseStudy.showcaseEdition.changes} /></NarrativeSection>
-        <Evidence content={caseStudy.evidence} />
         <NarrativeSection content={caseStudy.limitations}><Details items={caseStudy.limitations.items} /></NarrativeSection>
         <NarrativeSection content={caseStudy.reflection}><Details items={caseStudy.reflection.nextSteps} /></NarrativeSection>
-        <section id={caseStudy.releaseStatus.id} tabIndex={-1} aria-labelledby="release-status-title">
-          <h2 id="release-status-title">{caseStudy.releaseStatus.title}</h2>
+        <details className="engineering-details">
+          <summary>展开工程架构与验证方法</summary>
+          <ArchitectureComparison content={caseStudy.architecture} />
+          <Evidence content={caseStudy.evidence} />
+        </details>
+        <section id={caseStudy.releaseStatus.id} tabIndex={-1} aria-labelledby="experience-title">
+          <h2 id="experience-title">{caseStudy.releaseStatus.title}</h2>
           {caseStudy.releaseStatus.body.map((paragraph) => <p key={paragraph}>{paragraph}</p>)}
           <Details items={caseStudy.releaseStatus.items} />
         </section>

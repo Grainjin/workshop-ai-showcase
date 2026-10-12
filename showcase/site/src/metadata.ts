@@ -1,8 +1,8 @@
 import { readPublicUrl } from './content/release-links';
 import type { ReleaseEnvironment } from './content/types';
 
-const title = 'Workshop AI｜AI 本地服务交易平台';
-const description = '中文产品案例：从服务发现、报价比较到预约履约，解析 AI 助手、历史报价决策支持、演示架构与验证边界。';
+const title = 'Workshop AI｜AI 辅助的本地服务平台 · 产品设计与实现';
+const description = 'Zhan Jin 的中文产品介绍：理解本地服务需求、双角色交易流程、分阶段报价与 AI 用户确认机制，以及设计落地、客户验收和后续市场测试。';
 const escapeHtml = (value: string) => value.replace(/[&<>"']/g, (character) =>
   ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' })[character]!);
 

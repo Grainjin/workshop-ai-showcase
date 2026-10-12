@@ -1,5 +1,5 @@
 export type SectionId = 'overview' | 'problem' | 'journey' | 'walkthrough' | 'ai' | 'decisions' |
-  'architecture' | 'showcase-edition' | 'evidence' | 'limitations' | 'reflection';
+  'architecture' | 'process' | 'evidence' | 'limitations' | 'reflection';
 
 export interface ContentSection {
   readonly id: SectionId;
@@ -56,6 +56,8 @@ export interface WalkthroughCapture {
   readonly date: `${number}-${number}-${number}`;
   readonly sourcePath: string;
   readonly limitation: string;
+  readonly width: number;
+  readonly height: number;
 }
 
 export interface CaseStudyContent {
@@ -69,18 +71,17 @@ export interface CaseStudyContent {
   readonly problem: ContentSection & { readonly tensions: readonly ContentDetail[] };
   readonly journey: ContentSection & { readonly steps: readonly ContentDetail[] };
   readonly walkthrough: ContentSection & {
-    readonly verification: ContentDetail;
     readonly videoStatus: ContentDetail & { readonly linkLabel: string | null };
     readonly videoAction: CallToActionContent;
     readonly demoAction: CallToActionContent;
     readonly demoFallbackLabel: string;
-    readonly steps: readonly ContentDetail[];
     readonly captures: readonly WalkthroughCapture[];
   };
   readonly aiLayer: ContentSection & {
     readonly capabilities: readonly ContentDetail[];
     readonly diagram: DiagramContent;
     readonly confirmationSteps: readonly ContentDetail[];
+    readonly capture: WalkthroughCapture;
   };
   readonly decisionSupport: ContentSection & { readonly mechanisms: readonly ContentDetail[] };
   readonly architecture: ContentSection & { readonly modes: readonly ArchitectureMode[] };
@@ -89,7 +90,7 @@ export interface CaseStudyContent {
   readonly limitations: ContentSection & { readonly items: readonly ContentDetail[] };
   readonly reflection: ContentSection & { readonly nextSteps: readonly ContentDetail[] };
   readonly releaseStatus: {
-    readonly id: 'release-status'; readonly title: string;
+    readonly id: 'experience'; readonly title: string;
     readonly body: readonly string[]; readonly items: readonly ContentDetail[];
   };
   readonly interface: {

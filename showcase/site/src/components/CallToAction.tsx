@@ -7,7 +7,7 @@ export function CallToAction({ action, language = 'zh-CN' }: {
   const status = language === 'en'
     ? available ? 'Available' : 'In preparation'
     : available ? action.id === 'english-summary' ? '可阅读' : '可访问' : '即将开放';
-  const fallback = action.id === 'video' ? '#walkthrough' : '#release-status';
+  const fallback = action.id === 'video' ? '#walkthrough' : '#experience';
   return (
     <a className="action-link" href={available ? action.target.url! : fallback}
       aria-label={`${action.label} · ${action.accessibleLabel} · ${status}`}>

@@ -2,14 +2,14 @@ import type { EnglishSummaryContent, ReleaseEnvironment } from './types';
 import { createReleaseLinks } from './release-links';
 
 const summaryContent = {
-  language: 'en', id: 'english-summary', title: 'Workshop AI — project summary',
-  summary: 'A local-services marketplace connecting discovery, comparison, booking, quotes, payment, fulfilment and reviews. AI helps interpret needs and reviews; business changes require explicit confirmation.',
-  role: 'Personal showcase maintenance: product synthesis, baseline fixes, demo safeguards and release preparation.',
-  capabilities: ['Location and service filters, favourites and historical quote references.',
-    'Tool Calling, recommendations, review summaries and confirmation cards.',
-    'Customer, Provider and Admin demo roles with simulated payments.'],
-  architecture: 'The full local stack retains vector retrieval and background tasks. The planned lightweight public stack uses FastAPI, PostgreSQL and server-side LLM calls with database review context.',
-  limitations: 'Fictional data and simulated transactions. Local verification does not establish live deployment, vendor availability or operational impact. Public URLs and the walkthrough are being prepared.',
+  language: 'en', id: 'english-summary', title: 'Workshop AI — product introduction',
+  summary: 'An AI-assisted local-services marketplace connecting customers and providers through discovery, requests, phased quotes, payments, fulfilment and aftercare. Page controls and conversation share the same business rules.',
+  role: 'This product showcase explains the user journey, product decisions, AI design and implementation. The project received recognition from its University of Sydney project mentor and passed real-client acceptance; market tests in Sydney and Istanbul are forthcoming.',
+  capabilities: ['Search, filters, provider details and booking-linked chat.',
+    'Separate visit fee, estimated service price and final quote, with customer confirmation at each phase.',
+    'Tool Calling and drafts; users confirm consequential actions before backend role and state checks.'],
+  architecture: 'Expo and FastAPI connect to PostgreSQL. Current review retrieval uses database context; local vector code remains available but live generative RAG is not verified.',
+  limitations: 'Fictional Demo data and simulated payments. The quote capture is preparation, and the AI capture is a local capability explanation without a paid model call. Quantitative impact and cloud acceptance require separate evaluation.',
   returnLabel: 'Back to the Chinese overview',
 } as const;
 
