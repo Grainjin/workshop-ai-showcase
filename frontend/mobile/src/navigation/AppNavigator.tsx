@@ -1,5 +1,6 @@
 import {
   DefaultTheme,
+  getStateFromPath,
   type LinkingOptions,
   NavigationContainer,
   useNavigation,
@@ -50,6 +51,7 @@ import { RealtimeProvider } from "../context/RealtimeContext";
 import { useIsWebDesktop } from "../layout/useIsWebDesktop";
 import { colors } from "../theme/theme";
 import { DesktopSidebar } from "./DesktopSidebar";
+import { createGuardedPathParser } from "./guardedPathParser";
 import { RoleTabs } from "./RoleTabs";
 import type { RootStackParamList } from "./types";
 
@@ -58,6 +60,7 @@ export type { RootStackParamList } from "./types";
 const Stack = createNativeStackNavigator<RootStackParamList>();
 
 const linking: LinkingOptions<RootStackParamList> = {
+  getStateFromPath: createGuardedPathParser(getStateFromPath),
   prefixes: [
     "http://localhost:8081",
     "http://127.0.0.1:8081",
