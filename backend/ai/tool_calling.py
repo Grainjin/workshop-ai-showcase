@@ -85,7 +85,7 @@ def build_tool_calling_user_message(
     return (
         f"User message: {message}\n\n"
         "Available context: "
-        f"{json.dumps(context, ensure_ascii=False)}"
+        f"{json.dumps(jsonable_encoder(context), ensure_ascii=False)}"
     )
 
 
